@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h> 
+#include <time.h>
 
 int main(int argc, char *argv[])
 {
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
     }
     
     //Entrando a la region paralela con openmp
-
+    clock_t start = clock();
     for(int fb = 0; fb < hilos; fb++){
         for(int cb = 0;cb < hilos;cb++){
             #pragma omp parallel num_threads(hilos)
@@ -69,9 +70,12 @@ int main(int argc, char *argv[])
             }
         }
     }
-
+    clock_t end = clock();
+    double tiempo = (double)(end - start);
+    
+    printf("Tiempo de ejecucion: %.20f\n", tiempo/CLOCKS_PER_SEC);
     //impresion de matrices
-    for (int i = 0; i < N; i++)
+    /*for (int i = 0; i < N; i++)
     {
         for (int j = 0; j < N; j++)
         {
@@ -89,7 +93,7 @@ int main(int argc, char *argv[])
             printf("[%d]",c[i][j]);
         } 
         printf("\n");  
-    }
+    }*/
 
 
     return 0;
