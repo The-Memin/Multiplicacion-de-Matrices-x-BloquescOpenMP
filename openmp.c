@@ -2,7 +2,7 @@
 ==========================================================================================
  * Nombre: Multiplicacion de Matrices por Bloques
  * Autor: Equipo 8 Sistemas operativos II
- * Version: 1.0.0
+ * Version: 1.0.5
  * Descripcion: Algoritmo de multiplicacion de Matrices por bloque utilizando OpenMP
 ==========================================================================================
  */
@@ -12,33 +12,40 @@
 #include <stdlib.h>
 #include <unistd.h> 
 #include <time.h>
+#include <string.h>
 
 int main(int argc, char *argv[])
 {
-    int N;
-    int hilos;
-    N = atoi(argv[1]);
-    hilos = atoi(argv[2]);
-    int a[N][N];
-    int b[N][N];
-    int c[N][N];
-
-    //Inicializacion de matrices
-    srand(getpid()); //implatacion de semilla para numeros aleatorios
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-        {
-           // a[i][j] = rand() % 1001 + 1000;
-           // b[i][j] = rand() % 1001 + 1000;
-            a[i][j] = 2;
-            b[i][j] = 1;
-            c[i][j] = 0;
-        }    
+    int N = atoi(argv[1]);
+    int hilos = atoi(argv[2]);
+    int *A,*B;
+    long *C;
+    char archivo[20] = "tiempos_";
+    strcat(archivo,argv[1]);
+    strcat(archivo,"_");
+    strcat(archivo,argv[2]);
+    strcat(archivo,".txt");
+    
+    FILE *fp = fopen(archivo,"a"); 
+    if(fp == NULL){
+        perror("Error al abrir el archivo!");
+        exit(0);
     }
+    //rellenado de matrices
+    A = alloc_matrix(N);
+    B = alloc_matrix(N);
+    C = alloc_matrixL(N);
+    srand(getpid()); //implatacion de semilla para numeros aleatorios
+    fill_matrix(A, N, rand()%1001+1000);
+    fill_matrix(B, N, rand()%1001+1000);
+    fill_matrixC(C, N, 0);
     
     //Entrando a la region paralela con openmp
     clock_t start = clock();
+    // Start measuring time
+    struct timespec begin, end; 
+    clock_gettime(CLOCK_REALTIME, &begin);
+
     for(int fb = 0; fb < hilos; fb++){
         for(int cb = 0;cb < hilos;cb++){
             #pragma omp parallel num_threads(hilos)
@@ -60,7 +67,7 @@ int main(int argc, char *argv[])
                         for (int z = inicio_z; z < fin_z; z++)
                         {
                             #pragma omp atomic
-                            c[i][j] += a[i][z] * b[z][j]; 
+                            C[i*N + j] += A [i*N + z] * B[z*N + j]; 
                         }
                         
                     }
@@ -70,31 +77,19 @@ int main(int argc, char *argv[])
             }
         }
     }
-    clock_t end = clock();
-    double tiempo = (double)(end - start);
+    // Stop measuring time and calculate the elapsed time
+    clock_gettime(CLOCK_REALTIME, &end);
+    long seconds = end.tv_sec - begin.tv_sec;
+    long nanoseconds = end.tv_nsec - begin.tv_nsec;
+    double elapsed = seconds + nanoseconds*1e-9;
+
+    clock_t fin = clock();
+    double tiempo = (double)(fin - start);
     
-    printf("Tiempo de ejecucion: %.20f\n", tiempo/CLOCKS_PER_SEC);
-    //impresion de matrices
-    /*for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-        {
-            printf("[%d]",a[i][j]);
-            
-        } 
-        printf("\t");
-        for (int j = 0; j < N; j++)
-        {
-            printf("[%d]",b[i][j]);
-        }
-        printf("\t");
-        for (int j = 0; j < N; j++)
-        {
-            printf("[%d]",c[i][j]);
-        } 
-        printf("\n");  
-    }*/
-
-
+    printf("Tiempo de CPU: %.20f\n", tiempo/CLOCKS_PER_SEC);
+    printf("Tiempo de Pared: %.20f seconds.\n", elapsed);
+    fprintf(fp,"%.20f\n",elapsed);
+    fflush(fp);
+    fclose(fp);
     return 0;
 }
