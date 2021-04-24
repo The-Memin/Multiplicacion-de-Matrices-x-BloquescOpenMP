@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     fill_matrixC(C, N, 0);
     
     //Entrando a la region paralela con openmp
-    clock_t start = clock();
+    //clock_t start = clock();
     // Start measuring time
     struct timespec begin, end; 
     clock_gettime(CLOCK_REALTIME, &begin);
@@ -83,11 +83,10 @@ int main(int argc, char *argv[])
     long nanoseconds = end.tv_nsec - begin.tv_nsec;
     double elapsed = seconds + nanoseconds*1e-9;
 
-    clock_t fin = clock();
-    double tiempo = (double)(fin - start);
-    
-    printf("Tiempo de CPU: %.20f\n", tiempo/CLOCKS_PER_SEC);
-    printf("Tiempo de Pared: %.20f seconds.\n", elapsed);
+    //clock_t fin = clock();
+    //double tiempo = (double)(fin - start);
+    //printf("Tiempo de CPU: %.20f\n", tiempo/CLOCKS_PER_SEC);
+    //printf("Tiempo de Pared: %.20f seconds.\n", elapsed);
     fprintf(fp,"%.20f\n",elapsed);
     fflush(fp);
     fclose(fp);
